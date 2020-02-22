@@ -2,22 +2,47 @@ cmake_minimum_required(VERSION 3.13)
 
 project(GrpcExample)
 
-add_subdirectory(third_party/grpc EXCLUDE_FROM_ALL)
-message(STATUS "Using gRPC via add_subdirectory.")
+# using this method rebuild grpc every time a .cc file changes
+#add_subdirectory(third_party/grpc EXCLUDE_FROM_ALL)
+#message(STATUS "Using gRPC via add_subdirectory.")
 
 # After using add_subdirectory, we can now use the grpc targets directly from
 # this build.
-set(_PROTOBUF_LIBPROTOBUF libprotobuf)
+#set(_PROTOBUF_LIBPROTOBUF libprotobuf)
+#if(CMAKE_CROSSCOMPILING)
+#    find_program(_PROTOBUF_PROTOC protoc)
+#else()
+#    set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
+#endif()
+#set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
+#if(CMAKE_CROSSCOMPILING)
+#    find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+#else()
+#    set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
+#endif()
+
+# using this method does not
+set(protobuf_MODULE_COMPATIBLE TRUE)
+find_package(Protobuf CONFIG REQUIRED)
+message(STATUS "Using protobuf ${protobuf_VERSION}")
+
+set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
 if(CMAKE_CROSSCOMPILING)
     find_program(_PROTOBUF_PROTOC protoc)
 else()
     set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
 endif()
-set(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
+
+# Find gRPC installation
+# Looks for gRPCConfig.cmake file installed by gRPC's cmake installation.
+find_package(gRPC CONFIG REQUIRED)
+message(STATUS "Using gRPC ${gRPC_VERSION}")
+
+set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
 if(CMAKE_CROSSCOMPILING)
     find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
 else()
-    set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
+    set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 endif()
 
 get_filename_component(hw_proto "./protos/test.proto" ABSOLUTE)
