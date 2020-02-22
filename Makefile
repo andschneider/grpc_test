@@ -1,30 +1,11 @@
-LDFLAGS = -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
-           -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl
+create_network:
+	docker network create grpcnet
 
-CXX = g++
-CPPFLAGS += `pkg-config --cflags protobuf grpc`
-CXXFLAGS += -std=c++11
+run_server:
+	@docker run --rm --network=grpcnet --name=grpcserver -p 5000:5000 grpctest ./server
 
-GRPC_CPP_PLUGIN = grpc_cpp_plugin
-GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
+run_client:
+	@docker run --rm --network=grpcnet --name=grpcclient grpctest ./client
 
-PROTO_DIR = ./protos
-vpath %.proto $(PROTO_DIR)
-
-all: client server
-
-client: test.pb.o test.grpc.pb.o client.o
-	$(CXX) $^ $(LDFLAGS) -o $@
-
-server: test.pb.o test.grpc.pb.o server.o
-	$(CXX) $^ $(LDFLAGS) -o $@
-
-%.grpc.pb.cc: %.proto
-	protoc -I $(PROTO_DIR) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
-
-%.pb.cc: %.proto
-	protoc -I $(PROTO_DIR) --cpp_out=. $<
-
-clean:
-	rm -f *.o *.pb.cc *.pb.h client server
+build: Dockerfile
+	docker build -t grpctest . 

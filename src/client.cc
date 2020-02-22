@@ -39,6 +39,7 @@ class GrpcTestClient {
 };
 
 void Run() {
+    // std::string address("0.0.0.0:5000"); // if running locally
     std::string address("grpcserver:5000");
     GrpcTestClient client(
         grpc::CreateChannel(

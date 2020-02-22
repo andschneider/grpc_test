@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 as builder
 
 RUN apt-get update && apt-get install -y \
     autoconf \
@@ -32,8 +32,13 @@ RUN cd third_party/grpc && \
     make -j7 && \
     make install
 
-WORKDIR /app
 COPY CMakeLists.txt .
 
-COPY src/ .
+COPY src/ src/
 RUN cmake . && make -j
+
+FROM ubuntu:18.04 as runner
+
+WORKDIR /app
+COPY --from=builder /build/client .
+COPY --from=builder /build/server .
