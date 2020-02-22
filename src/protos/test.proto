@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package test;
+
+service GrpcTest {
+    rpc SendRequest (ClientRequest) returns (ServerResponse);
+}
+
+message ClientRequest {
+    string client_input = 1;
+}
+
+message ServerResponse {
+    int32 code = 1;
+}
